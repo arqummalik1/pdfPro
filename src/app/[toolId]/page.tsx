@@ -65,109 +65,86 @@ export default async function ToolPage({ params }: PageProps) {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14">
-            <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 text-gray-600 hover:text-gray-900">
               <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium">All Tools</span>
+              <span className="font-medium text-sm sm:text-base">All Tools</span>
             </Link>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-red-500 flex items-center justify-center">
                 <FileText className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-gray-900">PDFPro</span>
+              <span className="font-bold text-gray-900 text-sm sm:text-base">PDFPro</span>
             </div>
-            <div className="w-16" /> {/* Spacer for balance */}
+            <div className="w-16 sm:w-20" /> {/* Spacer for balance */}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
         {/* Tool Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 md:mb-10">
           <div 
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-3 md:mb-4"
             style={getToolIconBadgeStyle(tool.color)}
           >
-            {renderToolIcon(tool.icon, 'w-8 h-8')}
+            {renderToolIcon(tool.icon, 'w-6 h-6 md:w-8 md:h-8')}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{tool.label}</h1>
-          <p className="text-gray-600 max-w-xl mx-auto">{tool.description}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 px-2">{tool.label}</h1>
+          <p className="text-sm md:text-lg text-gray-600 max-w-xl mx-auto px-4">{tool.description}</p>
         </div>
 
         {/* Interactive Tool Widget - Upload & Process */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <div className="max-w-3xl mx-auto mb-10 md:mb-16">
+          <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 p-4 md:p-8 shadow-sm">
             <ToolUploaderWrapper toolId={toolId} toolName={tool.label} />
           </div>
         </div>
 
-        {/* How it works */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">How to {tool.label.split(' ')[1] || tool.label}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                <span className="text-red-600 font-bold">1</span>
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Upload</h3>
-              <p className="text-sm text-gray-500">Drag and drop your PDF files or click to browse</p>
+        {/* Features/Info Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-16">
+          <div className="text-center p-4">
+            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Shield className="w-5 h-5" />
             </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                <span className="text-red-600 font-bold">2</span>
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Process</h3>
-              <p className="text-sm text-gray-500">Click the button and we&apos;ll process your files instantly</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mb-4">
-                <span className="text-red-600 font-bold">3</span>
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Download</h3>
-              <p className="text-sm text-gray-500">Get your processed PDF files instantly</p>
-            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Secure Processing</h3>
+            <p className="text-sm text-gray-500">Your files are encrypted and automatically deleted after 1 hour.</p>
           </div>
-        </div>
-
-        {/* Features */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span className="text-sm font-medium text-gray-700">100% Free</span>
+          <div className="text-center p-4">
+            <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <CheckCircle className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200">
-              <Clock className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-700">Fast Processing</span>
+            <h3 className="font-semibold text-gray-900 mb-2">High Quality</h3>
+            <p className="text-sm text-gray-500">We use the best PDF processing engine to ensure your files look perfect.</p>
+          </div>
+          <div className="text-center p-4">
+            <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Clock className="w-5 h-5" />
             </div>
-            <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200">
-              <Shield className="w-5 h-5 text-purple-500" />
-              <span className="text-sm font-medium text-gray-700">Secure & Private</span>
-            </div>
+            <h3 className="font-semibold text-gray-900 mb-2">Fast & Easy</h3>
+            <p className="text-sm text-gray-500">Simple interface allows you to process your files in seconds.</p>
           </div>
         </div>
 
         {/* Related Tools */}
         {relatedTools.length > 0 && (
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Related Tools</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {relatedTools.map((relatedTool) => {
-                return (
-                  <Link
-                    key={relatedTool.id}
-                    href={`/${relatedTool.id}`}
-                    className="p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
+          <div className="border-t border-gray-200 pt-10 md:pt-16">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 md:mb-8 text-center">Related Tools</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {relatedTools.map((t) => (
+                <Link 
+                  key={t.id} 
+                  href={`/${t.id}`}
+                  className="p-4 rounded-xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-md transition-all text-center group"
+                >
+                  <div 
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-3"
+                    style={getToolIconBadgeStyle(t.color)}
                   >
-                    <div
-                      className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
-                      style={getToolIconBadgeStyle(relatedTool.color)}
-                    >
-                      {renderToolIcon(relatedTool.icon, 'w-5 h-5')}
-                    </div>
-                    <p className="text-sm font-medium text-gray-900">{relatedTool.label}</p>
-                  </Link>
-                );
-              })}
+                    {renderToolIcon(t.icon, 'w-5 h-5')}
+                  </div>
+                  <h3 className="font-medium text-gray-900 text-sm group-hover:text-red-500 transition-colors">{t.label}</h3>
+                </Link>
+              ))}
             </div>
           </div>
         )}

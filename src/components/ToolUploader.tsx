@@ -321,7 +321,7 @@ export default function ToolUploader({
           }
         }}
         className={`
-          relative border-2 border-dashed rounded-2xl p-12 text-center 
+          relative border-2 border-dashed rounded-xl md:rounded-2xl p-6 sm:p-12 text-center 
           cursor-pointer transition-all duration-200
           ${isProcessing || !isToolSupported
             ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-70'
@@ -341,21 +341,23 @@ export default function ToolUploader({
 
         {isProcessing ? (
           <div className="space-y-3">
-            <Loader2 className="w-12 h-12 text-blue-500 mx-auto animate-spin" />
-            <p className="text-gray-600 font-medium">Processing your PDF...</p>
-            <p className="text-sm text-gray-400">This may take a moment</p>
+            <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-red-500 mx-auto animate-spin" />
+            <p className="text-gray-600 font-medium text-sm md:text-base">Processing your PDF...</p>
+            <p className="text-xs md:text-sm text-gray-400">This may take a moment</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <Upload className="w-12 h-12 text-gray-400 mx-auto" />
-            <p className="text-lg font-medium text-gray-900">
-              Drag & drop files for {toolName}
-            </p>
-            <p className="text-gray-500">or</p>
+            <Upload className="w-10 h-10 md:w-12 md:h-12 text-gray-400 mx-auto" />
+            <div className="space-y-1">
+              <p className="text-base md:text-lg font-medium text-gray-900 px-4">
+                Drag & drop files for {toolName}
+              </p>
+              <p className="text-gray-500 text-sm hidden sm:block">or</p>
+            </div>
             <button
               type="button"
               disabled={!isToolSupported}
-              className="px-6 py-2 bg-red-500 text-white font-medium rounded-lg 
+              className="px-6 py-2 bg-red-500 text-white text-sm md:text-base font-medium rounded-lg 
                          hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:text-gray-500"
               onClick={(e) => {
                 e.stopPropagation();
@@ -366,10 +368,10 @@ export default function ToolUploader({
             >
               Select Files
             </button>
-            <p className="text-xs text-gray-400 mt-4">
-              Maximum file size: {formatFileSize(maxSize)} • 
+            <p className="text-[10px] md:text-xs text-gray-400 mt-4 leading-relaxed">
+              Max size: {formatFileSize(maxSize)} • 
               {multiple ? ` Up to ${maxFiles} files` : ' Single file'} • 
-              PDF files only
+              PDF only
             </p>
           </div>
         )}
@@ -378,53 +380,55 @@ export default function ToolUploader({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-medium text-gray-900 text-sm md:text-base">
               {files.length} file{files.length !== 1 ? 's' : ''} selected
             </h3>
             <button
               onClick={clearFiles}
-              className="text-sm text-red-500 hover:text-red-700"
+              className="text-xs md:text-sm text-red-500 hover:text-red-700 font-medium"
             >
               Clear all
             </button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
             {files.map((uploadedFile) => (
               <div
                 key={uploadedFile.id}
-                className="flex items-center justify-between p-4 bg-white 
+                className="flex items-center justify-between p-3 md:p-4 bg-white 
                            rounded-xl border border-gray-200"
               >
-                <div className="flex items-center gap-3">
-                  {uploadedFile.status === 'uploading' ? (
-                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                  ) : uploadedFile.status === 'success' ? (
-                    <CheckCircle className="w-8 h-8 text-green-500" />
-                  ) : uploadedFile.status === 'error' ? (
-                    <AlertCircle className="w-8 h-8 text-red-500" />
-                  ) : (
-                    <FileText className="w-8 h-8 text-red-500" />
-                  )}
-                  <div>
-                    <p className="font-medium text-gray-900 truncate max-w-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex-shrink-0">
+                    {uploadedFile.status === 'uploading' ? (
+                      <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-blue-500 animate-spin" />
+                    ) : uploadedFile.status === 'success' ? (
+                      <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
+                    ) : uploadedFile.status === 'error' ? (
+                      <AlertCircle className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+                    ) : (
+                      <FileText className="w-6 h-6 md:w-8 md:h-8 text-red-500" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 text-sm md:text-base truncate pr-2">
                       {uploadedFile.name}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs md:text-sm text-gray-500">
                       {formatFileSize(uploadedFile.size)}
                     </p>
                     {uploadedFile.error && (
-                      <p className="text-sm text-red-500">{uploadedFile.error}</p>
+                      <p className="text-xs text-red-500 truncate">{uploadedFile.error}</p>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => removeFile(uploadedFile.id)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg flex-shrink-0"
                   disabled={isProcessing}
                 >
-                  <X className="w-5 h-5 text-gray-400" />
+                  <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                 </button>
               </div>
             ))}
@@ -438,10 +442,10 @@ export default function ToolUploader({
           onClick={processPdf}
           disabled={isProcessing || files.length === 0 || !isToolSupported}
           className={`
-            w-full py-4 px-6 font-medium rounded-xl transition-all
+            w-full py-3 md:py-4 px-6 font-semibold rounded-xl transition-all shadow-sm
             ${isProcessing || files.length === 0 || !isToolSupported
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-red-500 text-white hover:bg-red-600 active:scale-[0.98]'
             }
           `}
         >
@@ -458,25 +462,27 @@ export default function ToolUploader({
 
       {/* Result */}
       {results.length > 0 && (
-        <div className="p-6 bg-green-50 border border-green-200 rounded-xl text-center">
-          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-green-900 mb-2">
+        <div className="p-4 md:p-8 bg-green-50 border border-green-200 rounded-xl text-center">
+          <CheckCircle className="w-10 h-10 md:w-12 md:h-12 text-green-500 mx-auto mb-3 md:mb-4" />
+          <h3 className="text-base md:text-lg font-bold text-green-900 mb-1 md:mb-2">
             Processing Complete!
           </h3>
-          <p className="text-green-700 mb-4">
+          <p className="text-sm md:text-base text-green-700 mb-4 px-2">
             {results.length === 1
               ? `Your ${toolName} file is ready to download`
               : `${results.length} PDF files are ready to download`}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-2 md:gap-3">
             {results.map((processedResult) => (
               <button
                 key={processedResult.fileName}
                 onClick={() => handleDownload(processedResult)}
-                className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-3 font-medium text-white hover:bg-green-600"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 px-6 py-3 font-semibold text-white hover:bg-green-600 active:scale-[0.98] transition-all"
               >
                 <Download className="w-5 h-5" />
-                {results.length === 1 ? 'Download Result' : `Download ${processedResult.fileName}`}
+                <span className="truncate max-w-[200px]">
+                  {results.length === 1 ? 'Download Result' : `Download ${processedResult.fileName}`}
+                </span>
               </button>
             ))}
           </div>

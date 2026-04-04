@@ -71,42 +71,49 @@ export default function HomePage() {
                 Sign In
               </button>
             </nav>
+            <div className="md:hidden flex items-center gap-4">
+              <Link href="/blog" className="text-xs font-medium text-gray-600 hover:text-gray-900">Blog</Link>
+              <button className="px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">
+                Sign In
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-12 md:py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
               Every PDF Tool You Need
+              <br className="hidden sm:block" />
               <span className="text-red-500"> Completely Free</span>
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
               Merge, split, compress, convert, edit, sign & more. No signup required. 
               No watermarks. 100% free forever.
             </p>
           </div>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-16">
-            <div className="relative">
+          <div className="max-w-2xl mx-auto mb-12 md:mb-16">
+            <div className="relative group">
               <input
                 type="text"
                 placeholder="Find your PDF tool..."
-                className="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-red-500 focus:outline-none transition-colors"
+                className="w-full pl-6 pr-24 sm:pr-32 py-4 text-base sm:text-lg border-2 border-gray-200 rounded-2xl focus:border-red-500 focus:outline-none transition-all shadow-sm group-hover:shadow-md"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-colors">
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-2 bg-red-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-red-600 transition-colors">
                 Search
               </button>
             </div>
           </div>
 
           {/* Popular Tools */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">Most Popular Tools</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="mb-12">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 text-center">Most Popular Tools</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-4xl mx-auto">
               {VISIBLE_TOP_TOOLS.map((tool, index) => (
                 <HeroToolCard key={tool.id} tool={tool} index={index} />
               ))}
@@ -114,45 +121,45 @@ export default function HomePage() {
           </div>
 
           {/* Trust Signals */}
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-500 px-4">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span>No signup required</span>
+              <span className="whitespace-nowrap">No signup required</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span>No watermarks</span>
+              <span className="whitespace-nowrap">No watermarks</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span>Files deleted after 1 hour</span>
+              <span className="whitespace-nowrap">Files deleted after 1 hour</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* All Tools by Category */}
-      <section className="py-16">
+      <section className="py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {VISIBLE_TOOL_CATEGORIES.map((category) => (
-            <div key={category.id} className="mb-16">
-              <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>
-                <span className="text-sm text-gray-500">({category.tools.length} tools)</span>
+            <div key={category.id} className="mb-12 md:mb-16">
+              <div className="flex items-baseline gap-3 mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">{category.name}</h2>
+                <span className="text-xs md:text-sm text-gray-500">({category.tools.length} tools)</span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
                 {category.tools.map((tool) => (
                   <ToolCard key={tool.id} tool={tool} />
                 ))}
