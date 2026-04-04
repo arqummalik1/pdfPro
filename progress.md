@@ -14,6 +14,10 @@ Last Updated: 2026-04-04
 - 2026-04-04: Started final launch-readiness verification after real Supabase credentials and SQL schema were added to the project.
 - 2026-04-04: Confirmed backend Supabase logging is connected, `processing_logs` is reachable, frontend build and lint pass, and backend health reports Supabase as configured.
 - 2026-04-04: Prepared the verified launch-ready changes for git commit and GitHub push, with deployment order finalized as Render backend first and Vercel frontend second.
+- 2026-04-04: Clarified the correct Render backend start command and documented that `npm start` is preferred because it uses the backend package script.
+- 2026-04-04: Investigated a Render deploy failure caused by a missing backend `build` script and started hardening the backend package config for platform compatibility.
+- 2026-04-04: Added a backend `build` script so Render deployments configured with `npm run build` can complete successfully.
+- 2026-04-04: Prepared the Render compatibility fix and progress log update for a final GitHub push.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.
 

@@ -4,6 +4,7 @@
   "description": "PDFPro - Free PDF Processing API",
   "main": "src/index.js",
   "scripts": {
+    "build": "node -e \"console.log('No build step required for pdfpro-backend')\"",
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "test": "jest --coverage"
