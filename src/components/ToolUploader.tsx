@@ -11,7 +11,6 @@ import {
   extractPages,
   addWatermark,
   signPdf,
-  protectPdf,
   unlockPdf,
   addPageNumbers,
   downloadBlob,
@@ -19,6 +18,7 @@ import {
   formatFileSize,
   ApiError
 } from '@/lib/api';
+import { END_TO_END_TOOL_ID_SET } from '@/lib/tools-config';
 
 interface UploadedFile {
   id: string;
@@ -43,20 +43,6 @@ interface ToolUploaderProps {
   onSuccess?: (blob: Blob) => void;
 }
 
-const SUPPORTED_TOOL_IDS = new Set([
-  'merge-pdf',
-  'compress-pdf',
-  'split-pdf',
-  'rotate-pdf',
-  'delete-pages',
-  'extract-pages',
-  'watermark-pdf',
-  'sign-pdf',
-  'protect-pdf',
-  'unlock-pdf',
-  'page-numbers',
-]);
-
 function decodeBase64Pdf(base64: string): Blob {
   const binary = atob(base64);
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
@@ -76,7 +62,7 @@ export default function ToolUploader({
   const [results, setResults] = useState<ProcessedResult[]>([]);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isToolSupported = SUPPORTED_TOOL_IDS.has(toolId);
+  const isToolSupported = END_TO_END_TOOL_ID_SET.has(toolId);
 
   // Generate unique ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
@@ -224,13 +210,6 @@ export default function ToolUploader({
           nextResults = [{
             blob: await signPdf(file0, { text: 'Signed' }),
             fileName: 'signed.pdf',
-          }];
-          break;
-
-        case 'protect-pdf':
-          nextResults = [{
-            blob: await protectPdf(file0, 'password123'),
-            fileName: 'protected.pdf',
           }];
           break;
 

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { TOOL_CATEGORIES, TOP_TOOLS, type Tool } from '@/lib/tools-config';
+import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, type Tool } from '@/lib/tools-config';
 import { themeConfig } from '@/lib/theme';
 import { FileText } from 'lucide-react';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
@@ -107,7 +107,7 @@ export default function HomePage() {
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">Most Popular Tools</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {TOP_TOOLS.map((tool, index) => (
+              {VISIBLE_TOP_TOOLS.map((tool, index) => (
                 <HeroToolCard key={tool.id} tool={tool} index={index} />
               ))}
             </div>
@@ -146,7 +146,7 @@ export default function HomePage() {
       {/* All Tools by Category */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {TOOL_CATEGORIES.map((category) => (
+          {VISIBLE_TOOL_CATEGORIES.map((category) => (
             <div key={category.id} className="mb-16">
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>

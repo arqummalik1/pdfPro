@@ -1,7 +1,7 @@
 // Tool page template with SEO
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getToolById } from '@/lib/tools-config';
+import { getVisibleToolById } from '@/lib/tools-config';
 import { FileText, ArrowLeft, CheckCircle, Clock, Shield } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import ToolUploaderWrapper from '@/components/ToolUploaderWrapper';
@@ -13,14 +13,14 @@ interface PageProps {
 
 // Generate static params for all tools
 export async function generateStaticParams() {
-  const { ALL_TOOLS } = await import('@/lib/tools-config');
-  return ALL_TOOLS.map((tool) => ({ toolId: tool.id }));
+  const { VISIBLE_TOOLS } = await import('@/lib/tools-config');
+  return VISIBLE_TOOLS.map((tool) => ({ toolId: tool.id }));
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { toolId } = await params;
-  const tool = getToolById(toolId);
+  const tool = getVisibleToolById(toolId);
   
   if (!tool) {
     return { title: 'Tool Not Found' };
@@ -47,15 +47,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // Tool page content
 export default async function ToolPage({ params }: PageProps) {
   const { toolId } = await params;
-  const tool = getToolById(toolId);
+  const tool = getVisibleToolById(toolId);
   
   if (!tool) {
     notFound();
   }
   
   // Get related tools
-  const { ALL_TOOLS } = await import('@/lib/tools-config');
-  const relatedTools = ALL_TOOLS
+  const { VISIBLE_TOOLS } = await import('@/lib/tools-config');
+  const relatedTools = VISIBLE_TOOLS
     .filter(t => t.category === tool.category && t.id !== tool.id)
     .slice(0, 4);
   

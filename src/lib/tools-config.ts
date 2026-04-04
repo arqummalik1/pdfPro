@@ -91,9 +91,38 @@ export const TOOL_CATEGORIES: ToolCategory[] = [
 // Helper to get flat list of all tools
 export const ALL_TOOLS = TOOL_CATEGORIES.flatMap(cat => cat.tools);
 
+// Tools that are currently implemented end-to-end across frontend and backend.
+export const END_TO_END_TOOL_IDS = [
+  'merge-pdf',
+  'split-pdf',
+  'compress-pdf',
+  'extract-pages',
+  'delete-pages',
+  'rotate-pdf',
+  'watermark-pdf',
+  'page-numbers',
+  'unlock-pdf',
+  'sign-pdf',
+] as const;
+
+export const END_TO_END_TOOL_ID_SET = new Set<string>(END_TO_END_TOOL_IDS);
+
+export const VISIBLE_TOOL_CATEGORIES: ToolCategory[] = TOOL_CATEGORIES
+  .map((category) => ({
+    ...category,
+    tools: category.tools.filter((tool) => END_TO_END_TOOL_ID_SET.has(tool.id)),
+  }))
+  .filter((category) => category.tools.length > 0);
+
+export const VISIBLE_TOOLS = VISIBLE_TOOL_CATEGORIES.flatMap((category) => category.tools);
+
 // Helper to get tool by ID
 export function getToolById(id: string): Tool | undefined {
   return ALL_TOOLS.find(tool => tool.id === id);
+}
+
+export function getVisibleToolById(id: string): Tool | undefined {
+  return VISIBLE_TOOLS.find((tool) => tool.id === id);
 }
 
 // Helper to get tools by category
@@ -104,6 +133,10 @@ export function getToolsByCategory(categoryId: string): Tool[] {
 
 // Top tools by popularity (for homepage hero)
 export const TOP_TOOLS = [...ALL_TOOLS]
+  .sort((a, b) => b.popularity - a.popularity)
+  .slice(0, 6);
+
+export const VISIBLE_TOP_TOOLS = [...VISIBLE_TOOLS]
   .sort((a, b) => b.popularity - a.popularity)
   .slice(0, 6);
 
