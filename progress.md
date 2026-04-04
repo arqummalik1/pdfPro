@@ -6,6 +6,14 @@ Last Updated: 2026-04-04
 
 - 2026-04-04: Created the initial progress tracker, audited all tools, and confirmed that only end-to-end working tools remain visible in the app.
 - 2026-04-04: Prepared the current workspace changes for git commit and push.
+- 2026-04-04: Audited environment variable usage and created placeholder `.env` files for the frontend and backend runtimes.
+- 2026-04-04: Started Supabase connectivity verification and Vercel deployment-readiness testing for the current app configuration.
+- 2026-04-04: Hardened backend Supabase config so placeholder credentials are treated as not configured, and exposed Supabase status in the backend health response.
+- 2026-04-04: Verified that the frontend production build succeeds, backend health is healthy, and Supabase remains unconfigured for backend logging until real backend Supabase credentials are added.
+- 2026-04-04: Prepared a Supabase SQL schema matching the backend logging fields so it can be pasted directly into the SQL Editor.
+- 2026-04-04: Started final launch-readiness verification after real Supabase credentials and SQL schema were added to the project.
+- 2026-04-04: Confirmed backend Supabase logging is connected, `processing_logs` is reachable, frontend build and lint pass, and backend health reports Supabase as configured.
+- 2026-04-04: Prepared the verified launch-ready changes for git commit and GitHub push, with deployment order finalized as Render backend first and Vercel frontend second.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.
 

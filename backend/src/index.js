@@ -14,6 +14,7 @@ const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 const { requestLogger } = require('./utils/logger');
 const { cleanupOldFiles } = require('./utils/fileCleanup');
+const { isSupabaseConfigured, isSupabaseLoggingConfigured } = require('./config/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -62,6 +63,10 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
+    integrations: {
+      supabasePublicClientConfigured: isSupabaseConfigured,
+      supabaseLoggingConfigured: isSupabaseLoggingConfigured,
+    },
   });
 });
 

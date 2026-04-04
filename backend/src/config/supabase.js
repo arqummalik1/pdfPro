@@ -4,9 +4,26 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+function getConfiguredEnvValue(name) {
+  const value = process.env[name]?.trim();
+
+  if (!value) return null;
+
+  const normalizedValue = value.toLowerCase();
+  const placeholderMarkers = [
+    'your-project.supabase.co',
+    'your-anon-key',
+    'your-service-key',
+    'your-supabase-anon-key',
+    'your-supabase-service-role-key',
+  ];
+
+  return placeholderMarkers.some((marker) => normalizedValue.includes(marker)) ? null : value;
+}
+
+const supabaseUrl = getConfiguredEnvValue('SUPABASE_URL');
+const supabaseAnonKey = getConfiguredEnvValue('SUPABASE_ANON_KEY');
+const supabaseServiceKey = getConfiguredEnvValue('SUPABASE_SERVICE_KEY');
 
 const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
@@ -17,6 +34,9 @@ const supabaseAdmin = supabaseUrl && supabaseServiceKey
       auth: { autoRefreshToken: false, persistSession: false },
     })
   : null;
+
+const isSupabaseConfigured = Boolean(supabase);
+const isSupabaseLoggingConfigured = Boolean(supabaseAdmin);
 
 async function logActivity(data) {
   if (!supabaseAdmin) return null;
@@ -43,4 +63,10 @@ async function logActivity(data) {
   }
 }
 
-module.exports = { supabase, supabaseAdmin, logActivity };
+module.exports = {
+  supabase,
+  supabaseAdmin,
+  logActivity,
+  isSupabaseConfigured,
+  isSupabaseLoggingConfigured,
+};
