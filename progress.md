@@ -24,6 +24,8 @@ Last Updated: 2026-04-04
 - 2026-04-04: Fixed 404 error in frontend operations by ensuring `/api/v1` is always appended to `API_BASE_URL` in `api.ts`.
 - 2026-04-04: Enhanced mobile responsiveness for all components and pages.
 - 2026-04-04: Removed 'Sign In' and 'Blog' buttons from the app for a cleaner, focused experience.
+- 2026-04-04: Implemented real-time search functionality on the homepage with an interactive results dropdown.
+- 2026-04-04: Fixed search bar text readability and placeholder contrast issues.
 - 2026-04-04: Prepared the Render compatibility fix and progress log update for a final GitHub push.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.

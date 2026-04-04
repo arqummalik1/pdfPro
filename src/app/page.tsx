@@ -1,7 +1,10 @@
+'use client';
+
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, type Tool } from '@/lib/tools-config';
+import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, type Tool, ALL_TOOLS } from '@/lib/tools-config';
 import { themeConfig } from '@/lib/theme';
-import { FileText } from 'lucide-react';
+import { FileText, Search as SearchIcon, X } from 'lucide-react';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
 
 function ToolCard({ tool }: { tool: Tool }) {
@@ -52,6 +55,18 @@ function HeroToolCard({ tool, index }: { tool: Tool; index: number }) {
 }
 
 export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredTools = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    return ALL_TOOLS.filter(tool => 
+      tool.label.toLowerCase().includes(query) || 
+      tool.description.toLowerCase().includes(query) ||
+      tool.keywords.some(kw => kw.toLowerCase().includes(query))
+    ).slice(0, 8); // Limit results for the dropdown
+  }, [searchQuery]);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -87,17 +102,59 @@ export default function HomePage() {
           </div>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-12 md:mb-16">
+          <div className="max-w-2xl mx-auto mb-12 md:mb-16 relative">
             <div className="relative group">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors">
+                <SearchIcon className="w-5 h-5" />
+              </div>
               <input
                 type="text"
-                placeholder="Find your PDF tool..."
-                className="w-full pl-6 pr-24 sm:pr-32 py-4 text-base sm:text-lg border-2 border-gray-200 rounded-2xl focus:border-red-500 focus:outline-none transition-all shadow-sm group-hover:shadow-md"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Find your PDF tool (e.g. merge, split, compress)..."
+                className="w-full pl-14 pr-12 py-4 text-base sm:text-lg text-gray-900 border-2 border-gray-200 rounded-2xl focus:border-red-500 focus:outline-none transition-all shadow-sm group-hover:shadow-md placeholder:text-gray-400"
               />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 sm:px-6 py-2 bg-red-500 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-red-600 transition-colors">
-                Search
-              </button>
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
+
+            {/* Search Results Dropdown */}
+            {filteredTools.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-200 shadow-xl z-50 overflow-hidden">
+                <div className="max-h-[400px] overflow-y-auto">
+                  {filteredTools.map((tool) => (
+                    <Link 
+                      key={tool.id}
+                      href={`/${tool.id}`}
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                    >
+                      <div 
+                        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={getToolIconBadgeStyle(tool.color)}
+                      >
+                        {renderToolIcon(tool.icon, 'w-5 h-5')}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-semibold text-gray-900">{tool.label}</h4>
+                        <p className="text-sm text-gray-500 truncate">{tool.description}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {searchQuery.trim() && filteredTools.length === 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-gray-200 p-8 shadow-xl z-50 text-center">
+                <p className="text-gray-500">No tools found for &quot;{searchQuery}&quot;</p>
+              </div>
+            )}
           </div>
 
           {/* Popular Tools */}
