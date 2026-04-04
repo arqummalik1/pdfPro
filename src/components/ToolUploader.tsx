@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, CheckCircle, AlertCircle, Loader2, Download } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle, AlertCircle, Loader2, Download, FileCheck, Share2, RefreshCw } from 'lucide-react';
 import { 
   mergePdfs, 
   compressPdf, 
@@ -462,32 +462,88 @@ export default function ToolUploader({
 
       {/* Result */}
       {results.length > 0 && (
-        <div className="p-4 md:p-8 bg-green-50 border border-green-200 rounded-xl text-center">
-          <CheckCircle className="w-10 h-10 md:w-12 md:h-12 text-green-500 mx-auto mb-3 md:mb-4" />
-          <h3 className="text-base md:text-lg font-bold text-green-900 mb-1 md:mb-2">
-            Processing Complete!
-          </h3>
-          <p className="text-sm md:text-base text-green-700 mb-4 px-2">
-            {results.length === 1
-              ? `Your ${toolName} file is ready to download`
-              : `${results.length} PDF files are ready to download`}
-          </p>
-          <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-2 md:gap-3">
-            {results.map((processedResult) => (
-              <button
-                key={processedResult.fileName}
-                onClick={() => handleDownload(processedResult)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 px-6 py-3 font-semibold text-white hover:bg-green-600 active:scale-[0.98] transition-all"
-              >
-                <Download className="w-5 h-5" />
-                <span className="truncate max-w-[200px]">
-                  {results.length === 1 ? 'Download Result' : `Download ${processedResult.fileName}`}
-                </span>
-              </button>
-            ))}
+        <div className="relative overflow-hidden bg-white border-2 border-green-500 rounded-2xl shadow-xl animate-in fade-in zoom-in duration-500">
+          {/* Success Banner */}
+          <div className="bg-green-500 p-4 text-white flex items-center justify-center gap-3">
+            <CheckCircle className="w-6 h-6 animate-bounce" />
+            <span className="font-bold text-lg">Processing Complete!</span>
           </div>
+          
+          <div className="p-6 md:p-10 text-center">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <FileCheck className="w-10 h-10" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              Your PDF is ready!
+            </h3>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+              {results.length === 1
+                ? `The ${toolName} operation was successful. You can now download your file below.`
+                : `We successfully generated ${results.length} files for you. Download them individually or all at once.`}
+            </p>
+            
+            <div className="flex flex-col gap-4">
+              {results.map((processedResult, index) => (
+                <div 
+                  key={processedResult.fileName}
+                  className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group"
+                >
+                  <div className="flex items-center gap-3 mb-4 sm:mb-0">
+                    <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-gray-900 truncate max-w-[180px] sm:max-w-[240px]">
+                        {processedResult.fileName}
+                      </p>
+                      <p className="text-xs text-gray-400 uppercase tracking-wider font-bold">PDF Document</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleDownload(processedResult)}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-600 active:scale-95 transition-all shadow-lg shadow-red-500/20"
+                  >
+                    <Download className="w-5 h-5" />
+                    Download
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-center gap-6">
+              <button 
+                onClick={clearFiles}
+                className="flex items-center gap-2 text-gray-500 hover:text-red-500 font-semibold transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Start Over
+              </button>
+              <button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'PDFPro - Free PDF Tools',
+                      text: 'I just processed my PDF for free using PDFPro!',
+                      url: window.location.href,
+                    });
+                  }
+                }}
+                className="flex items-center gap-2 text-gray-500 hover:text-blue-500 font-semibold transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Share Tool
+              </button>
+            </div>
+          </div>
+
+          {/* Decorative elements */}
+          <div className="absolute -top-12 -right-12 w-24 h-24 bg-green-500/10 rounded-full blur-2xl" />
+          <div className="absolute -bottom-12 -left-12 w-24 h-24 bg-red-500/5 rounded-full blur-2xl" />
         </div>
       )}
+
     </div>
   );
 }
