@@ -10,7 +10,8 @@ const DEFAULT_API_BASE_URL =
     ? 'http://localhost:10000/api/v1' 
     : 'https://pdfpro-s8il.onrender.com/api/v1';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
+const API_BASE_URL = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
 
 interface ApiErrorResponse {
   message?: string;
