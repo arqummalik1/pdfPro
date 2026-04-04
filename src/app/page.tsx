@@ -66,17 +66,7 @@ export default function HomePage() {
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">All Tools</Link>
-              <Link href="/blog" className="text-sm font-medium text-gray-600 hover:text-gray-900">Blog</Link>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">
-                Sign In
-              </button>
             </nav>
-            <div className="md:hidden flex items-center gap-4">
-              <Link href="/blog" className="text-xs font-medium text-gray-600 hover:text-gray-900">Blog</Link>
-              <button className="px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">
-                Sign In
-              </button>
-            </div>
           </div>
         </div>
       </header>
@@ -172,15 +162,15 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="py-16 bg-gray-900 text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Need Help With PDFs?</h2>
+          <h2 className="text-3xl font-bold mb-4">Fast, Secure & Free</h2>
           <p className="text-gray-400 mb-8">
-            Check our blog for tutorials, tips, and guides on PDF management.
+            Process your PDF files locally and securely without any limits or signups.
           </p>
           <Link 
-            href="/blog" 
+            href="/" 
             className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors"
           >
-            Visit Blog
+            Explore All Tools
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
