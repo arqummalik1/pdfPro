@@ -13,7 +13,47 @@ const { protectPdf, unlockPdf } = require('../services/pdfProtector');
 const { logActivity } = require('../config/supabase');
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 }, fileFilter: (req, file, cb) => cb(file.mimetype === 'application/pdf' ? cb(null, true) : cb(new Error('Only PDF'), false)) });
+
+const parseNumericList = (value) => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.map(Number).filter(Number.isFinite);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map(Number).filter(Number.isFinite);
+      }
+    } catch {
+      // Fallback to comma-separated format.
+    }
+
+    return trimmed
+      .split(',')
+      .map((item) => Number(item.trim()))
+      .filter(Number.isFinite);
+  }
+
+  return [];
+};
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+      return;
+    }
+    cb(new Error('Only PDF files are allowed'), false);
+  },
+});
 const signUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 },
@@ -63,7 +103,10 @@ router.post('/delete-pages', upload.single('file'), async (req, res) => {
   const startTime = Date.now();
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Upload PDF' });
-    const pages = req.body.pages ? req.body.pages.split(',').map(Number) : [];
+    const pages = parseNumericList(req.body.pages);
+    if (pages.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please provide at least one page number to delete.' });
+    }
     const result = await deletePages(req.file.buffer, pages);
     await logActivity({ tool_used: 'delete-pages', input_size: req.file.buffer.length, output_size: result.length, processing_time_ms: Date.now() - startTime, status: 'success', ip_address: req.ip });
     res.setHeader('Content-Type', 'application/pdf');
@@ -77,7 +120,10 @@ router.post('/reorder', upload.single('file'), async (req, res) => {
   const startTime = Date.now();
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Upload PDF' });
-    const order = req.body.order ? req.body.order.split(',').map(Number) : [];
+    const order = parseNumericList(req.body.order);
+    if (order.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid page order.' });
+    }
     const result = await reorderPages(req.file.buffer, order);
     await logActivity({ tool_used: 'reorder', input_size: req.file.buffer.length, output_size: result.length, processing_time_ms: Date.now() - startTime, status: 'success', ip_address: req.ip });
     res.setHeader('Content-Type', 'application/pdf');

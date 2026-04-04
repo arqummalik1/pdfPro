@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, X, FileText, CheckCircle, AlertCircle, Loader2, Download, FileCheck, Share2, RefreshCw } from 'lucide-react';
 import { 
   mergePdfs, 
@@ -61,8 +61,123 @@ export default function ToolUploader({
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<ProcessedResult[]>([]);
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [signatureMode, setSignatureMode] = useState<'draw' | 'type'>('draw');
+  const [typedSignature, setTypedSignature] = useState('');
+  const [hasSignatureStroke, setHasSignatureStroke] = useState(false);
+  const [pageSelection, setPageSelection] = useState('1');
+  const [unlockPassword, setUnlockPassword] = useState('');
+  const [watermarkText, setWatermarkText] = useState('WATERMARK');
+  const [rotationAngle, setRotationAngle] = useState(90);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const isToolSupported = END_TO_END_TOOL_ID_SET.has(toolId);
+
+  // Initialize Canvas for Drawing
+  useEffect(() => {
+    if (toolId === 'sign-pdf' && signatureMode === 'draw' && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+      }
+    }
+  }, [toolId, signatureMode]);
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDrawing(true);
+    setHasSignatureStroke(true);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = ('touches' in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ('touches' in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setHasSignatureStroke(false);
+  };
+
+  const getCanvasBlob = (): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return resolve(null);
+      canvas.toBlob((blob) => resolve(blob), 'image/png');
+    });
+  };
+
+  const getTypedSignatureBlob = async (): Promise<Blob | null> => {
+    const text = typedSignature.trim();
+    if (!text) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 240;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Transparent background lets the signature blend naturally on PDFs.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#111827';
+    ctx.textBaseline = 'middle';
+    ctx.font = "64px 'Noto Sans', 'Segoe UI', Arial, sans-serif";
+    ctx.fillText(text, 24, canvas.height / 2);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), 'image/png');
+    });
+  };
+
+  const parsePageSelectionInput = (value: string): number[] => {
+    return value
+      .split(',')
+      .flatMap((part) => {
+        const token = part.trim();
+        if (!token) return [];
+        if (token.includes('-')) {
+          const [start, end] = token.split('-').map((n) => Number(n.trim()));
+          if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return [];
+          return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+        }
+        const n = Number(token);
+        return Number.isFinite(n) ? [n] : [];
+      })
+      .filter(Number.isFinite);
+  };
 
   // Generate unique ID
   const generateId = () => Math.random().toString(36).substring(2, 9);
@@ -108,6 +223,10 @@ export default function ToolUploader({
     setFiles(prev => prev.filter(f => f.id !== id));
     setResults([]);
     setGlobalError(null);
+    if (toolId === 'sign-pdf') {
+      clearCanvas();
+      setTypedSignature('');
+    }
   };
 
   // Clear all files
@@ -115,6 +234,10 @@ export default function ToolUploader({
     setFiles([]);
     setResults([]);
     setGlobalError(null);
+    if (toolId === 'sign-pdf') {
+      clearCanvas();
+      setTypedSignature('');
+    }
   };
 
   // Process PDF
@@ -172,31 +295,39 @@ export default function ToolUploader({
 
         case 'rotate-pdf':
           nextResults = [{
-            blob: await rotatePdf(file0, 90),
+            blob: await rotatePdf(file0, rotationAngle),
             fileName: 'rotated.pdf',
           }];
           break;
 
-        case 'delete-pages':
-          // Default: delete page 2
+        case 'delete-pages': {
+          const pages = parsePageSelectionInput(pageSelection);
+          if (pages.length === 0) {
+            throw new Error('Please enter valid page numbers (example: 2 or 2,4-6).');
+          }
           nextResults = [{
-            blob: await deletePages(file0, [2]),
+            blob: await deletePages(file0, pages),
             fileName: 'pages-deleted.pdf',
           }];
           break;
+        }
 
-        case 'extract-pages':
-          // Default: extract page 1
+        case 'extract-pages': {
+          const pages = parsePageSelectionInput(pageSelection);
+          if (pages.length === 0) {
+            throw new Error('Please enter valid page numbers (example: 1 or 1,3-5).');
+          }
           nextResults = [{
-            blob: await extractPages(file0, [1]),
+            blob: await extractPages(file0, pages),
             fileName: 'extracted-pages.pdf',
           }];
           break;
+        }
 
         case 'watermark-pdf':
           nextResults = [{
             blob: await addWatermark(file0, {
-              text: 'WATERMARK',
+              text: watermarkText.trim() || 'WATERMARK',
               fontSize: 48,
               opacity: 0.3,
               rotation: -45,
@@ -206,16 +337,45 @@ export default function ToolUploader({
           }];
           break;
 
-        case 'sign-pdf':
+        case 'sign-pdf': {
+          if (signatureMode === 'draw' && !hasSignatureStroke) {
+            throw new Error('Please draw your signature before signing the PDF.');
+          }
+
+          if (signatureMode === 'type' && !typedSignature.trim()) {
+            throw new Error('Please type your signature before signing the PDF.');
+          }
+
+          const signatureBlob =
+            signatureMode === 'draw'
+              ? await getCanvasBlob()
+              : await getTypedSignatureBlob();
+
+          if (!signatureBlob) {
+            throw new Error('Unable to generate signature image. Please try again.');
+          }
+
+          const signatureFile = new File([signatureBlob], 'signature.png', { type: 'image/png' });
+
           nextResults = [{
-            blob: await signPdf(file0, { text: 'Signed' }),
+            blob: await signPdf(file0, { 
+              signatureImage: signatureFile,
+              pageNumber: 1,
+              x: 100,
+              y: 100,
+              width: 150
+            }),
             fileName: 'signed.pdf',
           }];
           break;
+        }
 
         case 'unlock-pdf':
+          if (!unlockPassword.trim()) {
+            throw new Error('Please enter the PDF password to unlock the file.');
+          }
           nextResults = [{
-            blob: await unlockPdf(file0, 'password123'),
+            blob: await unlockPdf(file0, unlockPassword),
             fileName: 'unlocked.pdf',
           }];
           break;
@@ -327,6 +487,7 @@ export default function ToolUploader({
             ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-70'
             : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
           }
+          ${files.length > 0 && toolId === 'sign-pdf' ? 'hidden' : ''}
         `}
       >
         <input
@@ -376,6 +537,140 @@ export default function ToolUploader({
           </div>
         )}
       </div>
+
+      {/* Signature Pad (Only for sign-pdf tool after file is selected) */}
+      {toolId === 'sign-pdf' && files.length > 0 && results.length === 0 && (
+        <div className="space-y-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-sm">2</span>
+              Create Your Signature
+            </h3>
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setSignatureMode('draw')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${signatureMode === 'draw' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Draw
+              </button>
+              <button
+                onClick={() => setSignatureMode('type')}
+                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all ${signatureMode === 'type' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Type
+              </button>
+            </div>
+          </div>
+
+          {signatureMode === 'draw' ? (
+            <div className="space-y-4">
+              <div className="relative border-2 border-gray-200 rounded-xl overflow-hidden bg-gray-50 touch-none">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={200}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  className="w-full h-[150px] sm:h-[200px] cursor-crosshair"
+                />
+                <button
+                  onClick={clearCanvas}
+                  className="absolute bottom-3 right-3 p-2 bg-white/80 hover:bg-white text-gray-500 hover:text-red-500 rounded-lg shadow-sm border border-gray-200 transition-all"
+                  title="Clear signature"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 text-center italic">Sign inside the box above using your mouse or touch screen</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={typedSignature}
+                onChange={(e) => setTypedSignature(e.target.value)}
+                placeholder="Type your name here..."
+                className="w-full px-6 py-4 text-2xl border-2 border-gray-200 rounded-xl focus:border-red-500 focus:outline-none transition-all italic text-gray-900"
+                style={{ fontFamily: "'Dancing Script', cursive, serif" }}
+              />
+              <p className="text-xs text-gray-400 text-center italic">Type your name above for a digital signature</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tool-Specific Controls */}
+      {files.length > 0 && results.length === 0 && (toolId === 'delete-pages' || toolId === 'extract-pages' || toolId === 'unlock-pdf' || toolId === 'watermark-pdf' || toolId === 'rotate-pdf') && (
+        <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
+          {(toolId === 'delete-pages' || toolId === 'extract-pages') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Page Selection
+              </label>
+              <input
+                type="text"
+                value={pageSelection}
+                onChange={(e) => setPageSelection(e.target.value)}
+                placeholder="Example: 1,3-5"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-red-500 focus:outline-none"
+              />
+              <p className="text-xs text-gray-500">Use commas and ranges (for example: `1,3-5`).</p>
+            </div>
+          )}
+
+          {toolId === 'unlock-pdf' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                PDF Password
+              </label>
+              <input
+                type="password"
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                placeholder="Enter your PDF password"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-red-500 focus:outline-none"
+              />
+            </div>
+          )}
+
+          {toolId === 'watermark-pdf' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Watermark Text
+              </label>
+              <input
+                type="text"
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+                placeholder="WATERMARK"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-red-500 focus:outline-none"
+              />
+            </div>
+          )}
+
+          {toolId === 'rotate-pdf' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Rotation Angle
+              </label>
+              <select
+                value={rotationAngle}
+                onChange={(e) => setRotationAngle(Number(e.target.value))}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-red-500 focus:outline-none"
+              >
+                <option value={90}>90°</option>
+                <option value={180}>180°</option>
+                <option value={270}>270°</option>
+              </select>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* File List */}
       {files.length > 0 && (
@@ -484,7 +779,7 @@ export default function ToolUploader({
             </p>
             
             <div className="flex flex-col gap-4">
-              {results.map((processedResult, index) => (
+              {results.map((processedResult) => (
                 <div 
                   key={processedResult.fileName}
                   className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all group"

@@ -21,13 +21,29 @@ async function addSignature(pdfBuffer, signatureImage, options = {}) {
 async function addTypedSignature(pdfBuffer, signatureText, options = {}) {
   const { pageNumber = 1, x = 100, y = 100, fontSize = 20 } = options;
   const sourcePdf = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true });
+  
+  // Create a new document to copy pages into
   const newPdf = await PDFDocument.create();
-  const font = await newPdf.embedFont(StandardFonts.Cursive);
+  
+  // Standard fonts only support WinAnsi encoding (Latin characters)
+  // For full Unicode support (Hindi, Urdu, etc.), we would need to embed a .ttf font.
+  // As a fallback to avoid the 'undefined' font error, we use StandardFonts.Helvetica
+  const font = await newPdf.embedFont(StandardFonts.Helvetica);
+  
   const pages = await newPdf.copyPages(sourcePdf, sourcePdf.getPageIndices());
   pages.forEach((page, i) => {
     newPdf.addPage(page);
-    if (i === pageNumber - 1) page.drawText(signatureText, { x, y, size: fontSize, font, color: rgb(0, 0, 0) });
+    if (i === pageNumber - 1) {
+      page.drawText(signatureText || 'Signed', { 
+        x, 
+        y, 
+        size: fontSize, 
+        font, 
+        color: rgb(0, 0, 0) 
+      });
+    }
   });
+  
   return Buffer.from(await newPdf.save());
 }
 

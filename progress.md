@@ -26,6 +26,14 @@ Last Updated: 2026-04-04
 - 2026-04-04: Removed 'Sign In' and 'Blog' buttons from the app for a cleaner, focused experience.
 - 2026-04-04: Implemented real-time search functionality on the homepage with an interactive results dropdown.
 - 2026-04-04: Fixed search bar text readability and placeholder contrast issues.
+- 2026-04-04: Fixed 'font must be of type string' error in PDF Signer by ensuring standard font fallback.
+- 2026-04-04: Implemented an interactive Signature Pad with 'Draw' and 'Type' modes for signing PDFs.
+- 2026-04-04: Added support for image-based signatures from the frontend to the backend.
+- 2026-04-04: Hardened frontend API client signing payload mapping so `signatureImage` is always sent as backend field `signature`.
+- 2026-04-04: Fixed backend request parsing for `delete-pages`, `extract-pages`, and `reorder` to accept JSON arrays and comma/range formats safely.
+- 2026-04-04: Added robust user-facing controls for visible tools (page selection, unlock password, watermark text, rotation angle) to eliminate brittle hardcoded defaults.
+- 2026-04-04: Limited homepage search results to currently visible tools only, preventing dead-end links.
+- 2026-04-04: Strengthened CORS origin parsing by trimming and filtering configured origin values.
 - 2026-04-04: Prepared the Render compatibility fix and progress log update for a final GitHub push.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.

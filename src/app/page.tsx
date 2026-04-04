@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, type Tool, ALL_TOOLS } from '@/lib/tools-config';
+import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, VISIBLE_TOOLS, type Tool } from '@/lib/tools-config';
 import { themeConfig } from '@/lib/theme';
 import { FileText, Search as SearchIcon, X } from 'lucide-react';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
@@ -60,7 +60,7 @@ export default function HomePage() {
   const filteredTools = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase().trim();
-    return ALL_TOOLS.filter(tool => 
+    return VISIBLE_TOOLS.filter(tool => 
       tool.label.toLowerCase().includes(query) || 
       tool.description.toLowerCase().includes(query) ||
       tool.keywords.some(kw => kw.toLowerCase().includes(query))

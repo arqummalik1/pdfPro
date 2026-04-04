@@ -286,10 +286,12 @@ export async function signPdf(
 
   Object.entries(options).forEach(([key, value]) => {
     if (value !== undefined) {
+      const fieldName = key === 'signatureImage' ? 'signature' : key;
+
       if (value instanceof File) {
-        formData.append(key, value);
+        formData.append(fieldName, value);
       } else {
-        formData.append(key, String(value));
+        formData.append(fieldName, String(value));
       }
     }
   });
