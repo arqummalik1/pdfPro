@@ -33,7 +33,7 @@ app.use(helmet({
 
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || 
-    ['http://localhost:3000', 'http://localhost:3001', 'https://pdfpro.vercel.app'],
+    ['http://localhost:3000', 'http://localhost:3001', 'https://pdf-pro-ashen.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

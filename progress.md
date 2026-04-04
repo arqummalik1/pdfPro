@@ -17,6 +17,10 @@ Last Updated: 2026-04-04
 - 2026-04-04: Clarified the correct Render backend start command and documented that `npm start` is preferred because it uses the backend package script.
 - 2026-04-04: Investigated a Render deploy failure caused by a missing backend `build` script and started hardening the backend package config for platform compatibility.
 - 2026-04-04: Added a backend `build` script so Render deployments configured with `npm run build` can complete successfully.
+- 2026-04-04: Confirmed backend live on Render at `https://pdfpro-s8il.onrender.com`.
+- 2026-04-04: Updated frontend `API_BASE_URL` default in `api.ts` to point to the live Render backend.
+- 2026-04-04: Confirmed frontend live on Vercel at `https://pdf-pro-ashen.vercel.app`.
+- 2026-04-04: Updated backend `ALLOWED_ORIGINS` to include the final Vercel domain `https://pdf-pro-ashen.vercel.app`.
 - 2026-04-04: Prepared the Render compatibility fix and progress log update for a final GitHub push.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.
