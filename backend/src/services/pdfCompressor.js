@@ -81,21 +81,38 @@ async function replaceImagesInPdf(pdfDoc, compressedImages) {
   let replacedCount = 0;
 
   for (const page of pages) {
-    const xObjects = page.node.Resources?.lookup(PDFName.of('XObject'));
-    if (!xObjects) continue;
+    const resources = page.node.Resources?.();
+    if (!resources) continue;
 
-    const xObjectKeys = xObjects.keys();
+    const xObjectsRef = resources.get(PDFName.of('XObject'));
+    if (!xObjectsRef) continue;
 
-    for (const key of xObjectKeys) {
-      const xObject = xObjects.lookup(key);
+    // Resolve reference to get XObject dictionary
+    let xObjects;
+    try {
+      xObjects = xObjectsRef.lookup ? xObjectsRef.lookup() : xObjectsRef;
+    } catch (e) {
+      continue;
+    }
+
+    if (!xObjects || !xObjects.entries) continue;
+
+    for (const [key, ref] of xObjects.entries()) {
+      let xObject;
+      try {
+        xObject = pdfDoc.context.lookup(ref);
+      } catch (e) {
+        continue;
+      }
+
       if (!xObject) continue;
 
-      const subtype = xObject.get?.(PDFName.of('Subtype'));
+      const dict = xObject.dict || xObject;
+      const subtype = dict.get?.(PDFName.of('Subtype'));
       if (subtype !== PDFName.of('Image')) continue;
 
       // Get reference key
-      const ref = xObject.context?.lookupMaybe?.(xObject) || xObject;
-      const refKey = ref?.toString?.() || key?.toString?.();
+      const refKey = ref.toString();
 
       const compressedData = imageMap.get(refKey);
       if (!compressedData) continue;

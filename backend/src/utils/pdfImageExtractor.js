@@ -20,88 +20,112 @@ async function extractImagesFromPdf(pdfDoc) {
 
   for (let pageIndex = 0; pageIndex < pages.length; pageIndex++) {
     const page = pages[pageIndex];
-    const xObjects = page.node.Resources?.lookup(PDFName.of('XObject'));
+    
+    // Get resources - Resources is a method, not a property
+    const resources = page.node.Resources?.();
+    if (!resources) {
+      console.log(`[ImageExtractor] Page ${pageIndex}: No resources found`);
+      continue;
+    }
 
-    if (!xObjects) continue;
+    // Get XObject dictionary using .get() not .lookup()
+    const xObjectsRef = resources.get(PDFName.of('XObject'));
+    if (!xObjectsRef) {
+      console.log(`[ImageExtractor] Page ${pageIndex}: No XObjects found`);
+      continue;
+    }
 
-    const xObjectKeys = xObjects.keys();
+    // Resolve the reference to get the actual dictionary
+    let xObjects;
+    try {
+      if (xObjectsRef.lookup) {
+        xObjects = xObjectsRef.lookup();
+      } else {
+        xObjects = xObjectsRef;
+      }
+    } catch (e) {
+      console.warn(`[ImageExtractor] Page ${pageIndex}: Error resolving XObjects: ${e.message}`);
+      continue;
+    }
 
-    for (const key of xObjectKeys) {
-      const xObject = xObjects.lookup(key);
+    if (!xObjects || !xObjects.entries) {
+      continue;
+    }
 
-      if (!xObject) continue;
+    // Iterate through XObject entries
+    for (const [key, ref] of xObjects.entries()) {
+      try {
+        // Look up the actual XObject
+        const xObject = pdfDoc.context.lookup(ref);
+        if (!xObject) continue;
 
-      // Check if it's an image XObject
-      const subtype = xObject.get?.(PDFName.of('Subtype'));
-      if (subtype !== PDFName.of('Image')) continue;
+        // Check if it's an image XObject
+        const dict = xObject.dict || xObject;
+        const subtype = dict.get?.(PDFName.of('Subtype'));
+        if (subtype !== PDFName.of('Image')) continue;
 
-      // Get unique reference to avoid processing same image multiple times
-      const ref = xObject.context?.lookupMaybe?.(xObject) || xObject;
-      const refKey = ref?.toString?.() || key?.toString?.();
+        // Get unique reference key
+        const refKey = ref.toString();
+        if (processedRefs.has(refKey)) continue;
+        processedRefs.add(refKey);
 
-      if (processedRefs.has(refKey)) continue;
-      processedRefs.add(refKey);
+        // Extract image metadata
+        const width = dict.get(PDFName.of('Width'))?.value || 0;
+        const height = dict.get(PDFName.of('Height'))?.value || 0;
 
-      // Extract image metadata
-      const width = xObject.get?.(PDFName.of('Width'))?.asNumber?.() || 0;
-      const height = xObject.get?.(PDFName.of('Height'))?.asNumber?.() || 0;
+        if (width === 0 || height === 0) continue;
 
-      if (width === 0 || height === 0) continue;
+        // Determine image format from Filter
+        const filter = dict.get(PDFName.of('Filter'));
+        let format = 'raw';
 
-      // Determine image format
-      const filter = xObject.get?.(PDFName.of('Filter'));
-      let format = 'raw';
-
-      if (filter === PDFName.of('DCTDecode')) {
-        format = 'jpeg';
-      } else if (filter === PDFName.of('FlateDecode')) {
-        format = 'png';
-      } else if (Array.isArray(filter)) {
-        // Check if any filter is DCTDecode (JPEG) or FlateDecode (PNG)
-        for (const f of filter) {
-          if (f === PDFName.of('DCTDecode')) {
+        if (filter) {
+          if (filter.encodedName === '/DCTDecode') {
             format = 'jpeg';
-            break;
-          } else if (f === PDFName.of('FlateDecode')) {
+          } else if (filter.encodedName === '/FlateDecode') {
             format = 'png';
-            break;
+          } else if (Array.isArray(filter)) {
+            for (const f of filter) {
+              if (f.encodedName === '/DCTDecode') {
+                format = 'jpeg';
+                break;
+              } else if (f.encodedName === '/FlateDecode') {
+                format = 'png';
+                break;
+              }
+            }
           }
         }
-      }
 
-      // Extract raw image data
-      let imageData;
-      try {
+        // Extract raw image data
+        let imageData;
         if (xObject instanceof PDFRawStream) {
           imageData = Buffer.from(xObject.contents);
         } else if (xObject.contents) {
           imageData = Buffer.from(xObject.contents);
         } else {
-          // Try to get stream contents
-          const stream = xObject.context?.lookupMaybe?.(xObject);
-          if (stream?.contents) {
-            imageData = Buffer.from(stream.contents);
-          } else {
-            continue;
-          }
+          console.warn(`[ImageExtractor] Page ${pageIndex}: Could not extract image data`);
+          continue;
         }
+
+        if (!imageData || imageData.length === 0) continue;
+
+        console.log(`[ImageExtractor] Page ${pageIndex}: Found ${format} image ${width}x${height}, ${imageData.length} bytes`);
+
+        images.push({
+          ref: xObject,
+          refKey,
+          width,
+          height,
+          format,
+          data: imageData,
+          pageIndex,
+          originalSize: imageData.length
+        });
       } catch (e) {
-        console.warn(`[ImageExtractor] Failed to extract image on page ${pageIndex}:`, e.message);
+        console.warn(`[ImageExtractor] Page ${pageIndex}: Error processing XObject: ${e.message}`);
         continue;
       }
-
-      if (!imageData || imageData.length === 0) continue;
-
-      images.push({
-        ref: xObject,
-        refKey,
-        width,
-        height,
-        format,
-        data: imageData,
-        pageIndex,
-        originalSize: imageData.length
-      });
     }
   }
 
