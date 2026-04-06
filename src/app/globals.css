@@ -3,13 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-albert-sans: 'Albert Sans', sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-albert-sans);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +19,85 @@
   }
 }
 
+/* Global Typography with Albert Sans */
+html {
+  font-family: var(--font-albert-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-albert-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
 }
+
+/* Typography Scale */
+h1, .h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h2, .h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+h3, .h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h4, .h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+h5, .h5 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+h6, .h6 {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+p, .body {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.text-small {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Font Weights */
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* Letter Spacing */
+.tracking-tight { letter-spacing: -0.02em; }
+.tracking-normal { letter-spacing: 0; }
+.tracking-wide { letter-spacing: 0.02em; }

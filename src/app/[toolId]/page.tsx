@@ -6,6 +6,8 @@ import { FileText, ArrowLeft, CheckCircle, Clock, Shield } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import ToolUploaderWrapper from '@/components/ToolUploaderWrapper';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
+import { APP_VERSION_LABEL } from '@/lib/version';
+import { absoluteUrl } from '@/lib/seo';
 
 interface PageProps {
   params: Promise<{ toolId: string }>;
@@ -31,13 +33,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: `${tool.label} online for free. No signup required. ${tool.description}. Process your PDF files securely and fast.`,
     keywords: tool.keywords,
     alternates: {
-      canonical: `https://pdfpro.tools/${toolId}`,
+      canonical: absoluteUrl(`/${toolId}`),
     },
     openGraph: {
-      title: `${tool.label} | PDFPro`,
+      title: `${tool.label} | mydearPDF`,
       description: tool.description,
-      url: `https://pdfpro.tools/${toolId}`,
-      siteName: 'PDFPro',
+      url: absoluteUrl(`/${toolId}`),
+      siteName: 'mydearPDF',
       locale: 'en_US',
       type: 'website',
     },
@@ -73,7 +75,7 @@ export default async function ToolPage({ params }: PageProps) {
               <div className="w-6 h-6 rounded bg-red-500 flex items-center justify-center">
                 <FileText className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-gray-900 text-sm sm:text-base">PDFPro</span>
+              <span className="font-bold text-gray-900 text-sm sm:text-base">mydearPDF</span>
             </div>
             <div className="w-16 sm:w-20" /> {/* Spacer for balance */}
           </div>
@@ -152,8 +154,24 @@ export default async function ToolPage({ params }: PageProps) {
 
       {/* Footer */}
       <footer className="py-8 border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
-          <p>© 2026 PDFPro. All rights reserved.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex flex-col items-center gap-3 mb-3">
+            <span className="text-sm text-gray-500">
+              A product of{' '}
+              <a 
+                href="https://audentix.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-red-500 hover:text-red-600 font-medium transition-colors"
+              >
+                Audentix
+              </a>
+            </span>
+          </div>
+          <div className="text-sm text-gray-500 space-y-1">
+            <p>Version {APP_VERSION_LABEL}</p>
+            <p>© 2026 mydearPDF. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>

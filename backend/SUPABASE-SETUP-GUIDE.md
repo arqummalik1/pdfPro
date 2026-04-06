@@ -44,50 +44,115 @@ Copy these values:
 Run this in **SQL Editor**:
 
 ```sql
+-- Safe, rerunnable schema setup for PDFPro analytics + profiles
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 -- Users Profile Table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT,
   full_name TEXT,
   avatar_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can view own profile'
+  ) THEN
+    CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT
+      USING (auth.uid() = id);
+  END IF;
 
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE
-  USING (auth.uid() = id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can update own profile'
+  ) THEN
+    CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE
+      USING (auth.uid() = id);
+  END IF;
+END $$;
 
 -- Processing Logs Table
 CREATE TABLE IF NOT EXISTS public.processing_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   tool_used TEXT NOT NULL,
-  input_files INTEGER DEFAULT 0,
-  input_size BIGINT DEFAULT 0,
-  output_size BIGINT DEFAULT 0,
-  processing_time_ms INTEGER DEFAULT 0,
-  status TEXT DEFAULT 'success',
+  input_files INTEGER NOT NULL DEFAULT 0,
+  input_size BIGINT NOT NULL DEFAULT 0,
+  output_size BIGINT NOT NULL DEFAULT 0,
+  processing_time_ms INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'success',
   error_message TEXT,
   ip_address TEXT,
   user_agent TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_processing_logs_user_id ON public.processing_logs(user_id);
-CREATE INDEX idx_processing_logs_created_at ON public.processing_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_processing_logs_user_id ON public.processing_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_processing_logs_created_at ON public.processing_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_processing_logs_tool_used ON public.processing_logs(tool_used);
 
 ALTER TABLE public.processing_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can insert processing logs" ON public.processing_logs FOR INSERT
-  WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'processing_logs' AND policyname = 'Anyone can insert processing logs'
+  ) THEN
+    CREATE POLICY "Anyone can insert processing logs" ON public.processing_logs FOR INSERT
+      WITH CHECK (true);
+  END IF;
 
-CREATE POLICY "Users can view own logs" ON public.processing_logs FOR SELECT
-  USING (user_id = auth.uid() OR user_id IS NULL);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'processing_logs' AND policyname = 'Users can view own logs'
+  ) THEN
+    CREATE POLICY "Users can view own logs" ON public.processing_logs FOR SELECT
+      USING (user_id = auth.uid() OR user_id IS NULL);
+  END IF;
+END $$;
+
+-- Web Analytics Events Table (required by backend logWebEvent)
+CREATE TABLE IF NOT EXISTS public.web_analytics_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_name TEXT NOT NULL,
+  path TEXT,
+  tool_id TEXT,
+  session_id TEXT,
+  status TEXT,
+  duration_ms INTEGER,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_created_at ON public.web_analytics_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_event_name ON public.web_analytics_events(event_name);
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_tool_id ON public.web_analytics_events(tool_id);
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_session_id ON public.web_analytics_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_path ON public.web_analytics_events(path);
+CREATE INDEX IF NOT EXISTS idx_web_analytics_events_metadata_gin ON public.web_analytics_events USING GIN (metadata);
+
+ALTER TABLE public.web_analytics_events ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'web_analytics_events' AND policyname = 'Allow service inserts for web analytics events'
+  ) THEN
+    CREATE POLICY "Allow service inserts for web analytics events" ON public.web_analytics_events FOR INSERT
+      WITH CHECK (true);
+  END IF;
+END $$;
 
 -- Trigger: Create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

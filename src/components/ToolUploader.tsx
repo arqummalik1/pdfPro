@@ -19,6 +19,7 @@ import {
   ApiError
 } from '@/lib/api';
 import { END_TO_END_TOOL_ID_SET } from '@/lib/tools-config';
+import { trackEvent } from '@/lib/analytics';
 
 interface UploadedFile {
   id: string;
@@ -68,6 +69,7 @@ export default function ToolUploader({
   const [unlockPassword, setUnlockPassword] = useState('');
   const [watermarkText, setWatermarkText] = useState('WATERMARK');
   const [rotationAngle, setRotationAngle] = useState(90);
+  const [compressionLevel, setCompressionLevel] = useState<'low' | 'medium' | 'maximum'>('medium');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
@@ -261,9 +263,21 @@ export default function ToolUploader({
     setIsProcessing(true);
     setGlobalError(null);
     setResults([]);
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
     // Update file statuses
     setFiles(prev => prev.map(f => ({ ...f, status: 'uploading' as const })));
+
+    void trackEvent({
+      event: 'tool_process_started',
+      toolId,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      status: 'started',
+      metadata: {
+        fileCount: files.length,
+        totalInputSizeBytes: files.reduce((sum, item) => sum + item.size, 0),
+      },
+    });
 
     try {
       let nextResults: ProcessedResult[] = [];
@@ -279,7 +293,7 @@ export default function ToolUploader({
 
         case 'compress-pdf':
           nextResults = [{
-            blob: await compressPdf(file0, 'medium'),
+            blob: await compressPdf(file0, compressionLevel),
             fileName: 'compressed.pdf',
           }];
           break;
@@ -409,6 +423,19 @@ export default function ToolUploader({
         onSuccess(nextResults[0].blob);
       }
 
+      const completedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      void trackEvent({
+        event: 'tool_process_succeeded',
+        toolId,
+        path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+        status: 'success',
+        durationMs: Math.round(completedAt - startedAt),
+        metadata: {
+          fileCount: files.length,
+          outputCount: nextResults.length,
+        },
+      });
+
     } catch (error) {
       let errorMessage = 'An unexpected error occurred';
 
@@ -426,6 +453,19 @@ export default function ToolUploader({
         status: 'error' as const,
         error: errorMessage 
       })));
+
+      const failedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      void trackEvent({
+        event: 'tool_process_failed',
+        toolId,
+        path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+        status: 'error',
+        durationMs: Math.round(failedAt - startedAt),
+        metadata: {
+          message: errorMessage,
+          fileCount: files.length,
+        },
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -434,6 +474,16 @@ export default function ToolUploader({
   // Download result
   const handleDownload = (processedResult: ProcessedResult) => {
     downloadBlob(processedResult.blob, processedResult.fileName);
+    void trackEvent({
+      event: 'tool_output_downloaded',
+      toolId,
+      path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+      status: 'success',
+      metadata: {
+        fileName: processedResult.fileName,
+        sizeBytes: processedResult.blob.size,
+      },
+    });
   };
 
   // Drag and drop handlers
@@ -605,7 +655,7 @@ export default function ToolUploader({
       )}
 
       {/* Tool-Specific Controls */}
-      {files.length > 0 && results.length === 0 && (toolId === 'delete-pages' || toolId === 'extract-pages' || toolId === 'unlock-pdf' || toolId === 'watermark-pdf' || toolId === 'rotate-pdf') && (
+      {files.length > 0 && results.length === 0 && (toolId === 'delete-pages' || toolId === 'extract-pages' || toolId === 'unlock-pdf' || toolId === 'watermark-pdf' || toolId === 'rotate-pdf' || toolId === 'compress-pdf') && (
         <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
           {(toolId === 'delete-pages' || toolId === 'extract-pages') && (
             <div className="space-y-2">
@@ -667,6 +717,57 @@ export default function ToolUploader({
                 <option value={180}>180°</option>
                 <option value={270}>270°</option>
               </select>
+            </div>
+          )}
+
+          {toolId === 'compress-pdf' && (
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Compression Level
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCompressionLevel('low')}
+                  className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
+                    compressionLevel === 'low'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <span className="font-semibold text-sm">Low</span>
+                  <span className="text-xs mt-1 opacity-75">Better quality</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompressionLevel('medium')}
+                  className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
+                    compressionLevel === 'medium'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <span className="font-semibold text-sm">Medium</span>
+                  <span className="text-xs mt-1 opacity-75">Balanced</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompressionLevel('maximum')}
+                  className={`flex flex-col items-center p-3 rounded-lg border-2 transition-all ${
+                    compressionLevel === 'maximum'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <span className="font-semibold text-sm">Maximum</span>
+                  <span className="text-xs mt-1 opacity-75">Smallest size</span>
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">
+                {compressionLevel === 'low' && 'Minimal compression (~20-30% smaller). Best for documents with images where quality matters.'}
+                {compressionLevel === 'medium' && 'Balanced compression (~50-70% smaller). Good for most documents.'}
+                {compressionLevel === 'maximum' && 'Maximum compression (~70-90% smaller). Converts images to grayscale. Best for text-heavy documents.'}
+              </p>
             </div>
           )}
         </div>
@@ -819,8 +920,8 @@ export default function ToolUploader({
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({
-                      title: 'PDFPro - Free PDF Tools',
-                      text: 'I just processed my PDF for free using PDFPro!',
+                      title: 'mydearPDF - Free PDF Tools',
+                      text: 'I just processed my PDF for free using mydearPDF!',
                       url: window.location.href,
                     });
                   }

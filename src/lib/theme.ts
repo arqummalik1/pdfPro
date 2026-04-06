@@ -1,11 +1,13 @@
-// PDFPro Theme Configuration
+// mydearPDF Theme Configuration
 import type { Metadata } from 'next';
 
 export const siteConfig = {
-  name: 'PDFPro',
-  description: 'Free online PDF tools - Merge, Split, Compress, Convert, Edit, and more',
-  url: 'https://pdfpro.tools',
+  name: 'mydearPDF',
+  description: 'Free online PDF tools - Merge, Split, Compress, Convert, Edit, and more. A product of Audentix.',
+  url: 'https://mydearpdf.online',
   ogImage: '/og/home.png',
+  company: 'Audentix',
+  companyUrl: 'https://audentix.com',
 };
 
 export const themeConfig = {
@@ -57,7 +59,7 @@ export const metadataConfig: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.name,
-    template: '%s | PDFPro',
+    template: '%s | mydearPDF',
   },
   description: siteConfig.description,
   openGraph: {

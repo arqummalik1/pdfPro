@@ -1,9 +1,19 @@
 # PDFPro Development Progress
 
-Last Updated: 2026-04-04
+Last Updated: 2026-04-05
 
 ## Recent Updates
 
+- 2026-04-05: Implemented a native in-app analytics experience at `/dashboard` with backend aggregation endpoint (`GET /api/v1/analytics/dashboard`) and frontend KPI/table views for visitors, page views, top tools, failures, downloads, and daily trends.
+- 2026-04-05: Resolved a Next.js/React compiler lint guardrail on homepage filtering logic to preserve build optimization compliance after SEO updates.
+- 2026-04-05: Added full Metabase analytics enablement with a setup guide and reusable dashboard SQL views (`v_web_analytics_daily`, `v_tool_performance`, `v_web_vitals_summary`) for free BI reporting on Supabase data.
+- 2026-04-05: Implemented SEO hardening for high-intent PDF keywords by upgrading global metadata, canonical handling, sitemap/robots generation, and homepage keyword-aligned copy plus structured data.
+- 2026-04-05: Debugged Supabase SQL errors by fixing schema docs with a rerunnable migration block that creates `web_analytics_events`, hardens policy/index creation with idempotent checks, and prevents re-run failures in SQL Editor.
+- 2026-04-05: Implemented an automatic versioning system: backend now resolves runtime release metadata from `backend/package.json` and deployment commit/build environment variables, and frontend now auto-displays app version labels derived from root `package.json` (with optional `NEXT_PUBLIC_COMMIT_SHA` suffix).
+- 2026-04-05: Verified the analytics hardening changes with workspace diagnostics and lint checks (no new errors reported).
+- 2026-04-05: Hardened analytics integration end-to-end by improving client delivery reliability (`sendBeacon` + `keepalive` fallback), adding payload sanitization and safe session handling, enabling web vitals event capture from the root layout, and converting backend analytics persistence to a strictly non-blocking flow with stronger validation.
+- 2026-04-05: Completed full codebase and Next.js 16 docs audit for analytics work, finalized a production hardening plan covering client transport reliability, web vitals capture, and non-blocking backend ingestion.
+- 2026-04-05: Began full-repository audit for analytics integration, reviewed existing frontend tracker/event emitters and backend analytics ingestion flow, and started hardening plan for production-safe analytics.
 - 2026-04-04: Created the initial progress tracker, audited all tools, and confirmed that only end-to-end working tools remain visible in the app.
 - 2026-04-04: Prepared the current workspace changes for git commit and push.
 - 2026-04-04: Audited environment variable usage and created placeholder `.env` files for the frontend and backend runtimes.
@@ -34,6 +44,9 @@ Last Updated: 2026-04-04
 - 2026-04-04: Added robust user-facing controls for visible tools (page selection, unlock password, watermark text, rotation angle) to eliminate brittle hardcoded defaults.
 - 2026-04-04: Limited homepage search results to currently visible tools only, preventing dead-end links.
 - 2026-04-04: Strengthened CORS origin parsing by trimming and filtering configured origin values.
+- 2026-04-04: Implemented production analytics ingestion endpoint (`POST /api/v1/analytics/event`) with validation and non-blocking persistence flow.
+- 2026-04-04: Added frontend analytics tracker for route page views and tool lifecycle events (start/success/failure/download).
+- 2026-04-04: Added Supabase analytics persistence helper with safe fallback behavior to avoid impacting user requests if analytics storage fails.
 - 2026-04-04: Prepared the Render compatibility fix and progress log update for a final GitHub push.
 
 This file tracks the status of tools in PDFPro. A tool is considered **End-to-End (E2E) Working** if it has a backend service, an API route, a frontend API client, and is handled in the `ToolUploader` component.

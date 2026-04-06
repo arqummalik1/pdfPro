@@ -10,14 +10,17 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 const { requestLogger } = require('./utils/logger');
 const { cleanupOldFiles } = require('./utils/fileCleanup');
 const { isSupabaseConfigured, isSupabaseLoggingConfigured } = require('./config/supabase');
+const { getVersionInfo } = require('./config/version');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+const versionInfo = getVersionInfo();
 
 // Security & Middleware
 app.use(helmet({
@@ -49,6 +52,8 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Cookie parsing (required for session auth)
+app.use(cookieParser());
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -62,7 +67,11 @@ app.get('/health', (req, res) => {
     success: true,
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: versionInfo.version,
+    release: {
+      commit: versionInfo.shortCommitSha,
+      buildId: versionInfo.buildId,
+    },
     integrations: {
       supabasePublicClientConfigured: isSupabaseConfigured,
       supabaseLoggingConfigured: isSupabaseLoggingConfigured,
@@ -74,7 +83,11 @@ app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'PDFPro API - Free PDF Processing',
-    version: '1.0.0',
+    version: versionInfo.version,
+    release: {
+      commit: versionInfo.shortCommitSha,
+      buildId: versionInfo.buildId,
+    },
     endpoints: {
       merge: 'POST /api/v1/merge',
       split: 'POST /api/v1/split',
@@ -107,7 +120,7 @@ setInterval(() => {
 app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
-║  PDFPro Backend API v1.0.0                               ║
+║  PDFPro Backend API v${versionInfo.version}                            ║
 ║  Running on port: ${PORT}                                  ║
 ╚═══════════════════════════════════════════════════════════╝
   `);

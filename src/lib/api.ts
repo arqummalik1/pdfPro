@@ -1,5 +1,5 @@
 /**
- * PDFPro API Client
+ * mydearPDF API Client
  * Handles all backend API communication
  * 
  * @version 1.0.0
@@ -36,6 +36,69 @@ export interface PdfInfoResponse {
   creationDate?: string;
   modificationDate?: string;
   [key: string]: unknown;
+}
+
+export interface AnalyticsDailyMetrics {
+  day: string;
+  uniqueVisitors: number;
+  pageViews: number;
+  toolStarts: number;
+  toolSuccesses: number;
+  toolFailures: number;
+  downloads: number;
+}
+
+export interface AnalyticsToolMetrics {
+  toolId: string;
+  starts: number;
+  successes: number;
+  failures: number;
+  downloads: number;
+  successRate: number;
+}
+
+export interface AnalyticsTopPage {
+  path: string;
+  views: number;
+}
+
+export interface AuthStatusResponse {
+  success: boolean;
+  authenticated: boolean;
+  authConfigured: boolean;
+  locked?: boolean;
+  retryAfter?: number;
+  message?: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message?: string;
+  locked?: boolean;
+  retryAfter?: number;
+  code?: string;
+  attemptsLeft?: number;
+}
+
+export interface AnalyticsDashboardResponse {
+  success: boolean;
+  windowDays: number;
+  rowCount: number;
+  truncated: boolean;
+  generatedAt: string;
+  summary: {
+    totalEvents: number;
+    uniqueVisitors: number;
+    pageViews: number;
+    toolStarts: number;
+    toolSuccesses: number;
+    toolFailures: number;
+    downloads: number;
+  };
+  daily: AnalyticsDailyMetrics[];
+  tools: AnalyticsToolMetrics[];
+  topPages: AnalyticsTopPage[];
+  message?: string;
 }
 
 /**
@@ -131,10 +194,10 @@ export async function splitPdf(
 /**
  * Compress PDF file
  * @param file - PDF file to compress
- * @param level - Compression level (low, medium, high)
+ * @param level - Compression level (low, medium, maximum)
  * @returns Promise<Blob> - Compressed PDF
  */
-export async function compressPdf(file: File, level: string = 'medium'): Promise<Blob> {
+export async function compressPdf(file: File, level: 'low' | 'medium' | 'maximum' = 'medium'): Promise<Blob> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('level', level);
@@ -392,6 +455,57 @@ export async function getPdfInfo(file: File): Promise<PdfInfoResponse> {
   });
 }
 
+/**
+ * Load analytics dashboard data
+ * @param days - Date window in days
+ * @returns Promise<AnalyticsDashboardResponse>
+ */
+export async function getAnalyticsDashboard(days: number = 30): Promise<AnalyticsDashboardResponse> {
+  const normalizedDays = Number.isFinite(days) ? Math.max(1, Math.min(Math.round(days), 365)) : 30;
+  return fetchApi<AnalyticsDashboardResponse>(`/analytics/dashboard?days=${normalizedDays}`, {
+    credentials: 'include', // Include cookies for auth
+  });
+}
+
+// ============================================================================
+// ADMIN AUTH OPERATIONS
+// ============================================================================
+
+/**
+ * Login as admin
+ * @param pin - 6-digit PIN
+ * @returns Promise<LoginResponse>
+ */
+export async function adminLogin(pin: string): Promise<LoginResponse> {
+  return fetchApi<LoginResponse>('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+    credentials: 'include',
+  });
+}
+
+/**
+ * Logout admin
+ * @returns Promise<LoginResponse>
+ */
+export async function adminLogout(): Promise<LoginResponse> {
+  return fetchApi<LoginResponse>('/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+  });
+}
+
+/**
+ * Check admin authentication status
+ * @returns Promise<AuthStatusResponse>
+ */
+export async function checkAdminAuthStatus(): Promise<AuthStatusResponse> {
+  return fetchApi<AuthStatusResponse>('/auth/status', {
+    credentials: 'include',
+  });
+}
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
@@ -466,6 +580,7 @@ const apiClient = {
   unlockPdf,
   addPageNumbers,
   getPdfInfo,
+  getAnalyticsDashboard,
   downloadBlob,
   validatePdfFile,
   formatFileSize,

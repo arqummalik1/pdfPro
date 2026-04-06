@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, VISIBLE_TOOLS, type Tool } from '@/lib/tools-config';
 import { themeConfig } from '@/lib/theme';
+import { APP_VERSION_LABEL } from '@/lib/version';
+import { absoluteUrl } from '@/lib/seo';
 import { FileText, Search as SearchIcon, X } from 'lucide-react';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
 
@@ -56,8 +58,19 @@ function HeroToolCard({ tool, index }: { tool: Tool; index: number }) {
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const websiteStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'mydearPDF',
+    url: absoluteUrl('/'),
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${absoluteUrl('/')}?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
 
-  const filteredTools = useMemo(() => {
+  const filteredTools = (() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase().trim();
     return VISIBLE_TOOLS.filter(tool => 
@@ -65,10 +78,14 @@ export default function HomePage() {
       tool.description.toLowerCase().includes(query) ||
       tool.keywords.some(kw => kw.toLowerCase().includes(query))
     ).slice(0, 8); // Limit results for the dropdown
-  }, [searchQuery]);
+  })();
 
   return (
     <div className="min-h-screen bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
+      />
       {/* Header */}
       <header className="border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,7 +94,7 @@ export default function HomePage() {
               <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">PDFPro</span>
+              <span className="text-xl font-bold text-gray-900">mydearPDF</span>
             </div>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">All Tools</Link>
@@ -91,13 +108,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-12">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-              Every PDF Tool You Need
+              Merge PDF & Compress PDF
               <br className="hidden sm:block" />
-              <span className="text-red-500"> Completely Free</span>
+              <span className="text-red-500"> Online for Free</span>
             </h1>
             <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2">
-              Merge, split, compress, convert, edit, sign & more. No signup required. 
-              No watermarks. 100% free forever.
+              Merge PDF, compress PDF, split, rotate, sign, and edit in seconds.
+              No signup required. No watermarks. 100% free forever.
             </p>
           </div>
 
@@ -238,17 +255,39 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-12 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-center gap-6">
+            {/* Brand */}
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded bg-red-500 flex items-center justify-center">
                 <FileText className="w-4 h-4 text-white" />
               </div>
-              <span className="font-semibold text-gray-900">PDFPro</span>
+              <span className="font-semibold text-gray-900">mydearPDF</span>
             </div>
+            
+            {/* Audentix Branding */}
+            <div className="text-sm text-gray-500">
+              A product of{' '}
+              <a 
+                href="https://audentix.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-red-500 hover:text-red-600 font-medium transition-colors"
+              >
+                Audentix
+              </a>
+            </div>
+            
+            {/* Links */}
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <Link href="/privacy" className="hover:text-gray-900">Privacy</Link>
               <Link href="/terms" className="hover:text-gray-900">Terms</Link>
-              <span>© 2026 PDFPro. All rights reserved.</span>
+              <Link href="/dashboard" className="text-xs text-gray-300 hover:text-gray-500 transition-colors" title="Admin">•</Link>
+            </div>
+            
+            {/* Version & Copyright */}
+            <div className="flex flex-col items-center gap-1 text-xs text-gray-400">
+              <span>Version {APP_VERSION_LABEL}</span>
+              <span>© 2026 mydearPDF. All rights reserved.</span>
             </div>
           </div>
         </div>

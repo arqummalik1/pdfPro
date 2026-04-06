@@ -51,9 +51,11 @@ git push -u origin main
 |---------|-------|
 | Name | `pdfpro-api` |
 | Environment | Node |
-| Build Command | `npm install` |
+| Build Command | `apt-get update && apt-get install -y ghostscript && npm install` |
 | Start Command | `node src/index.js` |
 | Plan | Free |
+
+> **Note:** Ghostscript is required for PDF compression. The build command installs it on Render's Ubuntu environment.
 
 ### 3.3 Environment Variables
 
