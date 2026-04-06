@@ -24,6 +24,9 @@
 # misc
 .DS_Store
 *.pem
+/.kilo
+
+
 
 # debug
 npm-debug.log*
