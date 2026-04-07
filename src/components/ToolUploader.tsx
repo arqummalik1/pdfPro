@@ -20,7 +20,7 @@ import {
 } from '@/lib/api';
 import { END_TO_END_TOOL_ID_SET } from '@/lib/tools-config';
 import { trackEvent } from '@/lib/analytics';
-import { ProcessingSkeleton, FileItemSkeleton } from '@/components/ui/ShimmerSkeleton';
+import { ProcessingSkeleton, FileItemSkeleton, ShimmerSkeleton } from '@/components/ui/ShimmerSkeleton';
 
 interface UploadedFile {
   id: string;
