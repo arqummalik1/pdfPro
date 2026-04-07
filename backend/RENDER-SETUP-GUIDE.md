@@ -51,11 +51,11 @@ git push -u origin main
 |---------|-------|
 | Name | `pdfpro-api` |
 | Environment | Node |
-| Build Command | `npm install; npm run build` |
+| **Build Command** | `apt-get update && apt-get install -y qpdf && wget -q https://github.com/pdfcpu/pdfcpu/releases/latest/download/pdfcpu_linux_amd64.tar.gz && tar -xzf pdfcpu_linux_amd64.tar.gz && npm install; npm run build` |
 | Start Command | `node src/index.js` |
 | Plan | Free |
 
-> **Note:** PDF compression uses pdf-lib + Sharp (pure Node.js). No system packages required - works on Render free tier.
+> **Note:** The build command installs qpdf (via apt) and pdfcpu (binary download) for multi-engine PDF compression. pdf-lib and Sharp (pure Node.js) are always available.
 
 ### 3.3 Environment Variables
 
@@ -67,6 +67,8 @@ NODE_ENV=production
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_KEY=your-service-key
+PDFCPU_PATH=./pdfcpu
+QPDF_PATH=qpdf
 ```
 
 ### 3.4 Deploy
@@ -102,6 +104,28 @@ curl -X POST https://pdfpro-api.onrender.com/api/v1/merge \
   -o merged.pdf
 ```
 
+### 4.3 Test Compression Endpoint
+
+```bash
+curl -X POST https://pdfpro-api.onrender.com/api/v1/compress \
+  -F "file=@document.pdf" \
+  -F "level=medium" \
+  -o compressed.pdf
+```
+
+**Compression Levels:**
+- `low` - pdf-lib only (~10-20% reduction)
+- `medium` - pdf-lib + qpdf (~30-50% reduction)
+- `high` - pdf-lib + qpdf + pdfcpu + sharp for images (~50-70% reduction)
+
+**Response Headers (included with PDF):**
+- `X-Original-Size` - Original file size in bytes
+- `X-Compressed-Size` - Compressed file size in bytes
+- `X-Reduction-Percent` - Size reduction percentage
+- `X-Engines-Used` - Comma-separated list of engines used
+- `X-PDF-Type` - Detected PDF type (text-only, image-heavy, mixed)
+- `X-Processing-Time` - Processing time in milliseconds
+
 ---
 
 ## 📡 API Endpoints
@@ -134,6 +158,8 @@ curl -X POST https://pdfpro-api.onrender.com/api/v1/merge \
 | `SUPABASE_ANON_KEY` | No | - | Public key |
 | `SUPABASE_SERVICE_KEY` | No | - | Secret key |
 | `ALLOWED_ORIGINS` | No | - | CORS origins |
+| `PDFCPU_PATH` | No | ./pdfcpu | Path to pdfcpu binary |
+| `QPDF_PATH` | No | qpdf | Path to qpdf command |
 
 ---
 

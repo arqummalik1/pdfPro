@@ -4,7 +4,7 @@
 const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const { compressPdf } = require('../services/pdfCompressor');
+const { compressPDFPipeline } = require('../services/compressionPipeline');
 const { rotatePdf, rotateToOrientation } = require('../services/pdfRotator');
 const { deletePages, reorderPages, reversePages } = require('../services/pdfEditor');
 const { addTextWatermark, addPageNumbers } = require('../services/pdfWatermarker');
@@ -77,12 +77,38 @@ router.post('/compress', upload.single('file'), async (req, res) => {
   const startTime = Date.now();
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Upload PDF' });
-    const result = await compressPdf(req.file.buffer, req.body.level || 'medium');
-    await logActivity({ tool_used: 'compress', input_size: req.file.buffer.length, output_size: result.length, processing_time_ms: Date.now() - startTime, status: 'success', ip_address: req.ip });
+
+    const level = req.body.level || 'medium';
+    const result = await compressPDFPipeline(req.file.buffer, level);
+
+    await logActivity({
+      tool_used: 'compress',
+      input_size: result.stats.originalSize,
+      output_size: result.stats.compressedSize,
+      processing_time_ms: Date.now() - startTime,
+      status: 'success',
+      ip_address: req.ip,
+    });
+
+    // Return PDF with stats in headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="compressed-${uuidv4()}.pdf"`);
-    res.send(result);
-  } catch (error) { await logActivity({ tool_used: 'compress', status: 'error', error_message: error.message, ip_address: req.ip }); res.status(500).json({ success: false, message: error.message }); }
+    res.setHeader('X-Original-Size', result.stats.originalSize);
+    res.setHeader('X-Compressed-Size', result.stats.compressedSize);
+    res.setHeader('X-Reduction-Percent', result.stats.reductionPercent);
+    res.setHeader('X-Engines-Used', result.stats.enginesUsed.join(','));
+    res.setHeader('X-PDF-Type', result.stats.pdfType);
+    res.setHeader('X-Processing-Time', result.stats.processingTimeMs);
+    res.send(result.buffer);
+  } catch (error) {
+    await logActivity({
+      tool_used: 'compress',
+      status: 'error',
+      error_message: error.message,
+      ip_address: req.ip,
+    });
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // ROTATE

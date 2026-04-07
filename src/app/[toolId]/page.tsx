@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getVisibleToolById } from '@/lib/tools-config';
 import { ArrowLeft, CheckCircle, Clock, Shield } from 'lucide-react';
-import mydearPDFLogo from '@/assets/logos/mydearPDF_transparentBackground copy.PNG';
 import { notFound } from 'next/navigation';
 import ToolUploaderWrapper from '@/components/ToolUploaderWrapper';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
@@ -74,7 +73,7 @@ export default async function ToolPage({ params }: PageProps) {
               <span className="font-medium text-sm sm:text-base">All Tools</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Image src={mydearPDFLogo} alt="mydearPDF" className="w-6 h-6 object-contain" />
+              <Image src="/logos/logo.png" alt="mydearPDF" width={24} height={24} className="w-6 h-6 object-contain" />
               <span className="font-bold text-gray-900 text-sm sm:text-base">mydearPDF</span>
             </div>
             <div className="w-16 sm:w-20" /> {/* Spacer for balance */}

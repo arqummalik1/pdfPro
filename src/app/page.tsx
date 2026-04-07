@@ -9,7 +9,6 @@ import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, VISIBLE_TOOLS, type Tool } 
 import { themeConfig } from '@/lib/theme';
 import { APP_VERSION_LABEL } from '@/lib/version';
 import { absoluteUrl } from '@/lib/seo';
-import mydearPDFLogo from '@/assets/logos/mydearPDF_transparentBackground copy.PNG';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
 
 function ToolCard({ tool }: { tool: Tool }) {
@@ -94,7 +93,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <Image src={mydearPDFLogo} alt="mydearPDF" className="w-8 h-8 object-contain" />
+              <Image src="/logos/logo.png" alt="mydearPDF" width={32} height={32} className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-gray-900">mydearPDF</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
