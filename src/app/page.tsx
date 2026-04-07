@@ -89,9 +89,9 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
       />
       {/* Header */}
-      <header className="border-b border-gray-100">
+      <header className="border-b border-gray-100 py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-40">
+          <div className="flex items-center justify-between h-32">
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logos/logo.png" alt="mydearPDF" width={300} height={300} className="w-48 h-48 object-contain" />
             </Link>
