@@ -21,6 +21,17 @@ const { getVersionInfo } = require('./config/version');
 const app = express();
 const PORT = process.env.PORT || 10000;
 const versionInfo = getVersionInfo();
+const defaultAllowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://pdf-pro-ashen.vercel.app',
+  'https://mydearpdf.online',
+  'https://www.mydearpdf.online',
+];
+const envAllowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : [];
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...envAllowedOrigins])];
 
 // Security & Middleware
 app.use(helmet({
@@ -35,8 +46,13 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',').map((origin) => origin.trim()).filter(Boolean) || 
-    ['http://localhost:3000', 'http://localhost:3001', 'https://pdf-pro-ashen.vercel.app', 'https://mydearpdf.online', 'https://www.mydearpdf.online'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -45,10 +61,11 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: Number(process.env.API_RATE_LIMIT_MAX || 200),
   message: { success: false, message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.method === 'OPTIONS' || req.path.includes('/analytics/event'),
 });
 app.use('/api/', limiter);
 

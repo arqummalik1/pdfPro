@@ -12,9 +12,35 @@ const DEFAULT_API_BASE_URL =
 
 const rawApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
 const API_BASE_URL = rawApiUrl.endsWith('/api/v1') ? rawApiUrl : `${rawApiUrl}/api/v1`;
+const API_RETRY_COUNT = 2;
+const API_RETRY_BASE_DELAY_MS = 500;
 
 interface ApiErrorResponse {
   message?: string;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseRetryAfterMs(retryAfterHeader: string | null): number | null {
+  if (!retryAfterHeader) return null;
+
+  const seconds = Number(retryAfterHeader);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.round(seconds * 1000);
+  }
+
+  const retryDate = Date.parse(retryAfterHeader);
+  if (!Number.isNaN(retryDate)) {
+    return Math.max(0, retryDate - Date.now());
+  }
+
+  return null;
+}
+
+function shouldRetryStatus(status: number): boolean {
+  return status === 429 || status === 502 || status === 503 || status === 504;
 }
 
 export interface SplitPdfResponse {
@@ -119,34 +145,51 @@ async function fetchApi<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-    },
-  });
 
-  // Check content type to handle different response types
-  const contentType = response.headers.get('content-type');
-  
-  if (!response.ok) {
-    let errorMessage = `API Error: ${response.status}`;
-    
-    if (contentType?.includes('application/json')) {
-      const error = (await response.json()) as ApiErrorResponse;
-      errorMessage = error.message || errorMessage;
+  for (let attempt = 0; attempt <= API_RETRY_COUNT; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+        },
+      });
+
+      const contentType = response.headers.get('content-type');
+
+      if (!response.ok) {
+        if (shouldRetryStatus(response.status) && attempt < API_RETRY_COUNT) {
+          const retryAfterMs = parseRetryAfterMs(response.headers.get('retry-after'));
+          const backoffMs = retryAfterMs ?? API_RETRY_BASE_DELAY_MS * (attempt + 1);
+          await sleep(backoffMs);
+          continue;
+        }
+
+        let errorMessage = `API Error: ${response.status}`;
+        if (contentType?.includes('application/json')) {
+          const error = (await response.json()) as ApiErrorResponse;
+          errorMessage = error.message || errorMessage;
+        }
+        throw new ApiError(response.status, errorMessage);
+      }
+
+      if (contentType?.includes('application/pdf')) {
+        return (await response.blob()) as T;
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      const isNetworkError = error instanceof TypeError;
+      if (isNetworkError && attempt < API_RETRY_COUNT) {
+        const backoffMs = API_RETRY_BASE_DELAY_MS * (attempt + 1);
+        await sleep(backoffMs);
+        continue;
+      }
+      throw error;
     }
-    
-    throw new ApiError(response.status, errorMessage);
   }
 
-  // For PDF responses
-  if (contentType?.includes('application/pdf')) {
-    return (await response.blob()) as T;
-  }
-
-  return (await response.json()) as T;
+  throw new ApiError(500, 'Request failed after retries');
 }
 
 // ============================================================================
