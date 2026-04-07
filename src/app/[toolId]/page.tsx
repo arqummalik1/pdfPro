@@ -67,13 +67,13 @@ export default async function ToolPage({ params }: PageProps) {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-24">
+          <div className="flex items-center justify-between h-32">
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2 text-gray-600 hover:text-gray-900">
               <ArrowLeft className="w-4 h-4" />
               <span className="font-medium text-sm sm:text-base">All Tools</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Image src="/logos/logo.png" alt="mydearPDF" width={96} height={96} className="w-24 h-24 object-contain" />
+              <Image src="/logos/logo.png" alt="mydearPDF" width={144} height={144} className="w-36 h-36 object-contain" />
               <span className="font-bold text-gray-900 text-sm sm:text-base">mydearPDF</span>
             </div>
             <div className="w-20 sm:w-24" /> {/* Spacer for balance */}

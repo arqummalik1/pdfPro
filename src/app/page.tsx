@@ -91,9 +91,9 @@ export default function HomePage() {
       {/* Header */}
       <header className="border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-32">
+          <div className="flex items-center justify-between h-40">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logos/logo.png" alt="mydearPDF" width={200} height={200} className="w-32 h-32 object-contain" />
+              <Image src="/logos/logo.png" alt="mydearPDF" width={300} height={300} className="w-48 h-48 object-contain" />
               <span className="text-xl font-bold text-gray-900">mydearPDF</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
