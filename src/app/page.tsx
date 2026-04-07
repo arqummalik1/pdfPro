@@ -94,7 +94,6 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-40">
             <Link href="/" className="flex items-center gap-2">
               <Image src="/logos/logo.png" alt="mydearPDF" width={300} height={300} className="w-48 h-48 object-contain" />
-              <span className="text-xl font-bold text-gray-900">mydearPDF</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">All Tools</Link>
