@@ -3,6 +3,7 @@ import { Albert_Sans } from "next/font/google";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import WebVitalsTracker from "@/components/WebVitalsTracker";
 import { CORE_SEO_KEYWORDS, getSiteUrl } from "@/lib/seo";
+import "./globals.css";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
