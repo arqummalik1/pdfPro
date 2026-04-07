@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+
+import { Search as SearchIcon, X, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { VISIBLE_TOOL_CATEGORIES, VISIBLE_TOP_TOOLS, VISIBLE_TOOLS, type Tool } from '@/lib/tools-config';
 import { themeConfig } from '@/lib/theme';
 import { APP_VERSION_LABEL } from '@/lib/version';
 import { absoluteUrl } from '@/lib/seo';
-import { FileText, Search as SearchIcon, X } from 'lucide-react';
+import mydearPDFLogo from '@/assets/logos/mydearPDF_transparentBackground copy.PNG';
 import { getToolIconBadgeStyle, renderToolIcon } from '@/lib/tool-icons';
 
 function ToolCard({ tool }: { tool: Tool }) {
@@ -90,12 +93,10 @@ export default function HomePage() {
       <header className="border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
+            <Link href="/" className="flex items-center gap-2">
+              <Image src={mydearPDFLogo} alt="mydearPDF" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-gray-900">mydearPDF</span>
-            </div>
+            </Link>
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">All Tools</Link>
             </nav>

@@ -3,7 +3,7 @@ import { Albert_Sans } from "next/font/google";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import WebVitalsTracker from "@/components/WebVitalsTracker";
 import { CORE_SEO_KEYWORDS, getSiteUrl } from "@/lib/seo";
-import "./globals.css";
+import faviconLogo from '@/assets/logos/mydearPDF_transparentBackground_favicon.PNG';
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
@@ -34,9 +34,10 @@ export const metadata: Metadata = {
     description:
       "Merge PDF and Compress PDF online with secure, free tools. No signup required. Powered by Audentix.",
   },
-  robots: {
-    index: true,
-    follow: true,
+  icons: {
+    icon: faviconLogo,
+    shortcut: faviconLogo,
+    apple: faviconLogo,
   },
 };
 
