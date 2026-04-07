@@ -20,6 +20,7 @@ import {
 } from '@/lib/api';
 import { END_TO_END_TOOL_ID_SET } from '@/lib/tools-config';
 import { trackEvent } from '@/lib/analytics';
+import { ProcessingSkeleton, FileItemSkeleton } from '@/components/ui/ShimmerSkeleton';
 
 interface UploadedFile {
   id: string;
@@ -551,11 +552,7 @@ export default function ToolUploader({
         />
 
         {isProcessing ? (
-          <div className="space-y-3">
-            <Loader2 className="w-10 h-10 md:w-12 md:h-12 text-red-500 mx-auto animate-spin" />
-            <p className="text-gray-600 font-medium text-sm md:text-base">Processing your PDF...</p>
-            <p className="text-xs md:text-sm text-gray-400">This may take a moment</p>
-          </div>
+          <ProcessingSkeleton />
         ) : (
           <div className="space-y-3">
             <Upload className="w-10 h-10 md:w-12 md:h-12 text-gray-400 mx-auto" />
@@ -798,7 +795,9 @@ export default function ToolUploader({
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex-shrink-0">
                     {uploadedFile.status === 'uploading' ? (
-                      <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-blue-500 animate-spin" />
+                      <div className="w-6 h-6 md:w-8 md:h-8">
+                        <ShimmerSkeleton variant="circular" width="100%" height="100%" />
+                      </div>
                     ) : uploadedFile.status === 'success' ? (
                       <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-500" />
                     ) : uploadedFile.status === 'error' ? (
